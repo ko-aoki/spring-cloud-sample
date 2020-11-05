@@ -1,14 +1,18 @@
 server:
   port: 8082
+  servlet:
+    context-path: gw
 
 spring:
   cloud:
     gateway:
       routes:
         - id: path_route
-          uri: http://localhost:8081/api
+          uri: http://localhost:8081
           predicates:
-            - Path=/api/{segment}
+            - Path=/gw/api/{segment}
+          filters:
+            - SetPath=/api/{segment}
   security:
     oauth2:
       client:
@@ -19,13 +23,7 @@ spring:
             userinfo-uri: http://localhost:8080/auth/realms/myrealm/protocol/openid-connect/userinfo
             user-name-attribute: preferred_username
         registration:
-          keycloak-with-test-scope:
-            provider: keycloak
-            client-id: spring-client
-            client-secret: d7360530-4071-4a80-96fa-d711144fb3f3
-            authorization-grant-type: authorization_code
-            redirect-uri: "{baseUrl}/login/oauth2/code/keycloak"
-          keycloak-without-test-scope:
+          keycloak-dev:
             provider: keycloak
             client-id: spring-client
             client-secret: d7360530-4071-4a80-96fa-d711144fb3f3
