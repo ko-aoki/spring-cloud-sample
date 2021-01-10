@@ -6,6 +6,8 @@ server:
 spring:
   cloud:
     gateway:
+      default-filters:
+        - TokenRelay
       routes:
         - id: path_route
           uri: http://localhost:8081
@@ -13,6 +15,7 @@ spring:
             - Path=/gw/api/{segment}
           filters:
             - SetPath=/api/{segment}
+            - RemoveRequestHeader=Cookie
   security:
     oauth2:
       client:
