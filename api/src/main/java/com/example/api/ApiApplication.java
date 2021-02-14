@@ -1,41 +1,36 @@
 package com.example.api;
 
-import org.springframework.beans.factory.annotation.Value;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
+import io.github.resilience4j.timelimiter.TimeLimiterConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JCircuitBreakerFactory;
+import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JConfigBuilder;
+import org.springframework.cloud.client.circuitbreaker.Customizer;
+import org.springframework.context.annotation.Bean;
+import org.springframework.web.client.RestTemplate;
 
-import java.util.Map;
+import java.time.Duration;
 
 @SpringBootApplication
-@RestController
 public class ApiApplication {
-
-    @Value("${foo}")
-    private String foo;
-
-    @Value("${democonfigclient.message}")
-    private String message;
 
     public static void main(String[] args) {
         SpringApplication.run(ApiApplication.class, args);
     }
 
-    @GetMapping("/test")
-    String home(@RequestHeader Map<String, String> headers) {
-
-        headers.forEach((key, value) -> {
-            System.out.println(String.format("Header '%s' = %s", key, value));
-        });
-
-        SecurityContext context = SecurityContextHolder.getContext();
-        Authentication authentication = context.getAuthentication();
-
-        return message + " by " + foo;
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplateBuilder().build();
     }
+
+    @Bean
+    public Customizer<Resilience4JCircuitBreakerFactory> defaultCustomizer() {
+        return factory -> factory.configureDefault(id -> new Resilience4JConfigBuilder(id)
+                .timeLimiterConfig(TimeLimiterConfig.custom().timeoutDuration(Duration.ofSeconds(3)).build())
+                .circuitBreakerConfig(CircuitBreakerConfig.ofDefaults())
+                .build());
+    }
+
 }

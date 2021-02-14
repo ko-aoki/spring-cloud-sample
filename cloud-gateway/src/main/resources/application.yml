@@ -12,9 +12,9 @@ spring:
         - id: path_route
           uri: http://localhost:8081
           predicates:
-            - Path=/gw/api/{segment}
+            - Path=/gw/api/**
           filters:
-            - SetPath=/api/{segment}
+            - RewritePath=/gw/api/(?<segment>.*), /api/$\{segment}
             - RemoveRequestHeader=Cookie
   security:
     oauth2:
